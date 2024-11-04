@@ -1,12 +1,19 @@
-import { URL_LOGIN, URL_REGISTER } from "../constants/endpoints";
+// src/apis/auth.api.ts
+
 import http from "../utils/http";
 
-export const authApi = {
-  register(body: { password: string; username: string }) {
-    return http.post(URL_REGISTER, body);
+const authApi = {
+  login: async (credentials: { username: string; password: string }) => {
+    const response = await http.post("/login", credentials);
+    // Assuming the token is in response.data.token
+    const { token } = response.data; // Adjust this according to your API response structure
+    localStorage.setItem("accessToken", token); // Store the token in local storage
+    return response;
   },
-  login(body: { username: string; password: string }) {
-    return http.post(URL_LOGIN, body);
+
+  register: async (data: { username: string; password: string }) => {
+    const response = await http.post("/register", data);
+    return response;
   },
 };
 

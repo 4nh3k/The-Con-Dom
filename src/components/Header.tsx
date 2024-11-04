@@ -16,6 +16,9 @@ const Header: React.FC = () => {
           <a href="/login" className="text-gray-600 hover:text-blue-600">
             Login
           </a>
+          <a href="/register" className="text-gray-600 hover:text-blue-600">
+            Register
+          </a>
         </nav>
       </div>
     </header>
