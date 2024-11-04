@@ -17,7 +17,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <img
         src={product.imageURL}
         alt={product.name}
-        className="w-full h-40 object-cover rounded-md mb-4"
+        className="w-full h-80 object-cover rounded-md mb-4"
       />
       <h2 className="text-lg font-semibold">{product.name}</h2>
       <p className="text-gray-600">{product.price.toLocaleString()}đ</p>
