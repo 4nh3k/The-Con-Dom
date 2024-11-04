@@ -1,41 +1,70 @@
-// src/components/AddProduct.tsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import productsApi from "../../apis/product.api";
-import { Product } from "../../types/Product.type"; // Ensure the Product type includes 'id', 'name', 'description', 'price', 'stock', and 'imageUrl'
+// src/components/EditProduct.tsx
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import productsApi from "../../apis/product.api"; // Ensure this imports your API methods
+import { Product } from "../../types/Product.type";
 
 const AddProduct: React.FC = () => {
+  const { id } = useParams<{ id: string }>(); // Get the product ID from URL params
+  const navigate = useNavigate();
+
   const [product, setProduct] = useState<Product>({
+    id: 0, // Default ID for new products
     name: "",
+    imageURL: "",
     description: "",
     price: 0,
     stock: 0,
-    imageURL: "", // Add imageUrl to the state
   });
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (id) {
+      const fetchProduct = async () => {
+        try {
+          const response = await productsApi.getProduct(Number(id)); // Fetch the product by ID
+          setProduct(response.data);
+        } catch (err) {
+          setError("Failed to fetch product");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProduct();
+    } else {
+      setLoading(false); // No ID means we're adding a new product
+    }
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProduct((prevProduct) => ({ ...prevProduct, [name]: value }));
+    setProduct((prevProduct) =>
+      prevProduct ? { ...prevProduct, [name]: value } : null
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      // Send the product data to the API
-      await productsApi.createProduct(product);
-      navigate("/admin/products"); // Redirect to product list after adding
-    } catch (err) {
-      setError("Failed to add product"); // Handle the error
+
+    if (product) {
+      try {
+        if (product.id === undefined) return;
+        await productsApi.updateProduct(product.id, product); // Assuming you have an update method
+        navigate("/admin/products"); // Redirect to product list after updating
+      } catch (err) {
+        setError("Failed to update product");
+      }
     }
   };
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div>
-      <h2 className="text-2xl mb-4">Add Product</h2>
-      {error && <div className="text-red-500 mb-4">{error}</div>}{" "}
-      {/* Display error message */}
+      <h2 className="text-2xl mb-4">Edit Product</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block mb-2">Name:</label>
@@ -81,19 +110,8 @@ const AddProduct: React.FC = () => {
             required
           />
         </div>
-        <div className="mb-4">
-          <label className="block mb-2">Image URL:</label>{" "}
-          {/* New input for image URL */}
-          <input
-            type="text"
-            name="imageURL"
-            value={product.imageURL}
-            onChange={handleChange}
-            className="border border-gray-300 p-2 w-full"
-          />
-        </div>
         <button type="submit" className="bg-blue-500 text-white p-2">
-          Add Product
+          Update Product
         </button>
       </form>
     </div>

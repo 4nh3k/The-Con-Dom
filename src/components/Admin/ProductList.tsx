@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for routing
 import productsApi from "../../apis/product.api";
 import { Product } from "../../types/Product.type";
 
@@ -6,6 +7,7 @@ const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate(); // Create a navigate instance
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -22,6 +24,27 @@ const ProductList: React.FC = () => {
     fetchProducts();
   }, []);
 
+  const handleEdit = (id?: number) => {
+    if (!id) return;
+    navigate(`/admin/products/edit/${id}`); // Navigate to edit page
+  };
+
+  const handleDelete = async (id?: number) => {
+    if (!id) return;
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+    if (confirmDelete) {
+      try {
+        await productsApi.deleteProduct(id); // Assuming you have a delete method in your API
+        setProducts(products.filter((product) => product.id !== id)); // Update the state to remove the deleted product
+      } catch (err) {
+        setError("Failed to delete product");
+      }
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -36,8 +59,9 @@ const ProductList: React.FC = () => {
             <th className="border border-gray-300 p-2">Description</th>
             <th className="border border-gray-300 p-2">Price</th>
             <th className="border border-gray-300 p-2">Stock</th>
-            <th className="border border-gray-300 p-2">Image</th>{" "}
-            {/* New column for image */}
+            <th className="border border-gray-300 p-2">Image</th>
+            <th className="border border-gray-300 p-2">Actions</th>{" "}
+            {/* New column for actions */}
           </tr>
         </thead>
         <tbody>
@@ -49,7 +73,7 @@ const ProductList: React.FC = () => {
                 {product.description}
               </td>
               <td className="border border-gray-300 p-2">
-                {product.price.toFixed(2)}đ
+                {product.price.toLocaleString()}đ
               </td>
               <td className="border border-gray-300 p-2">{product.stock}</td>
               <td className="border border-gray-300 p-2">
@@ -58,8 +82,22 @@ const ProductList: React.FC = () => {
                   alt={product.name}
                   className="w-16 h-16 object-cover"
                 />
+              </td>
+              <td className="border border-gray-300 p-2">
+                <button
+                  onClick={() => handleEdit(product.id)}
+                  className="bg-yellow-500 text-white p-1 mr-2 rounded"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(product.id)}
+                  className="bg-red-500 text-white p-1 rounded"
+                >
+                  Delete
+                </button>
               </td>{" "}
-              {/* Displaying the product image */}
+              {/* Action buttons */}
             </tr>
           ))}
         </tbody>
